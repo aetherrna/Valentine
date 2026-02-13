@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet">
+    <title>For you, Nesiya Putri 💌</title>
+    <style>
+        .dancing { font-family: 'Dancing Script', cursive; }
+        .playfair { font-family: 'Playfair Display', serif; }
+
+        /* === 1. ANIMASI FOTO (SLIDE UP DARI BAWAH) === */
+        @keyframes slideUp {
+            0% { transform: translateY(100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .animate-popup { opacity: 0; animation: slideUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        /* === 2. ANIMASI LAIN === */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+            50% { transform: translateY(-15px) rotate(1.5deg); }
+        }
+        .float-animation { animation: float 4s ease-in-out infinite; }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .wiggle-animation { animation: wiggle 3s ease-in-out infinite; }
+
+        /* Garis Kertas */
+        .paper-lines {
+            background-image: linear-gradient(#a2d2ff 1px, transparent 1px);
+            background-size: 100% 2.5rem; line-height: 2.5rem;
+        }
+        
+        /* === 3. TRANSISI OPACITY === */
+        .fade-element { transition: opacity 1s ease-in-out; }
+        .hidden-el { opacity: 0; pointer-events: none; }
+        .visible-el { opacity: 1; pointer-events: auto; }
+        .section-content { display: none; }
+        .section-content.active { display: flex; }
+
+        /* === 4. LAYER SYSTEM === */
+        .bg-layer { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; transition: opacity 1s ease-in-out; }
+        #global-rain { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+        .content-layer { position: relative; z-index: 50; }
+
+        .emoji-particle { 
+            position: absolute; top: -10vh; animation: fall linear infinite; 
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); will-change: transform;
+        }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+
+        /* === 5. ZOOM MODAL === */
+        #zoom-modal {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.9);
+            display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        #zoom-modal.active { display: flex; opacity: 1; }
+        .zoom-content { transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #zoom-modal.active .zoom-content { transform: scale(1); }
+    </style>
+</head>
+<body class="bg-black overflow-x-hidden font-sans">
+
+    <div id="bg-landing" class="bg-layer visible-el bg-gradient-to-b from-[#ffe4e6] to-[#fecdd3]">
+        <div class="absolute top-20 left-10 w-40 h-40 bg-pink-300 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+        <div class="absolute bottom-20 right-10 w-40 h-40 bg-yellow-200 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+    </div>
+    <div id="bg-gallery" class="bg-layer hidden-el bg-gradient-to-b from-[#2e1020] via-[#4a1e2e] to-[#2e1020]"></div>
+    <div id="bg-letter" class="bg-layer hidden-el bg-gradient-to-br from-[#fbc2eb] to-[#a6c1ee]">
+        <div class="absolute top-10 left-10 w-32 h-32 bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+        <div class="absolute bottom-10 right-10 w-32 h-32 bg-pink-300 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-yellow-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse"></div>
+    </div>
+
+    <div id="global-rain"></div>
+
+    <div id="zoom-modal" onclick="closeZoom()">
+        <div class="zoom-content relative bg-white p-4 pb-12 rounded shadow-2xl max-w-sm w-[90%] md:w-auto" onclick="event.stopPropagation()">
+            <button onclick="closeZoom()" class="absolute -top-12 right-0 text-white text-4xl font-bold hover:text-gray-300 transition-colors">&times;</button>
+            <img id="zoom-img" src="" class="w-full h-auto max-h-[70vh] object-cover rounded border border-gray-200">
+            <p id="zoom-caption" class="playfair text-center text-2xl mt-4 text-gray-800 font-semibold"></p>
+        </div>
+    </div>
+
+    <section id="landing-content" class="section-content active min-h-screen flex-col justify-center items-center relative text-[#5c3a3a] text-center content-layer fade-element visible-el">
+        <h1 class="dancing text-6xl md:text-8xl mb-6 drop-shadow-sm text-[#d63384]">Will you be my<br>Valentine? 🍫</h1>
+        <div class="flex gap-6 mt-8">
+            <button id="yesBtn" onclick="yesClick()" class="dancing px-10 py-4 bg-[#ff4d6d] text-white rounded-full text-3xl font-bold hover:scale-110 hover:shadow-xl transition-all cursor-pointer border-4 border-white shadow-lg">YES ❤️</button>
+            <button id="noBtn" onclick="growYes()" class="dancing px-10 py-4 bg-white text-[#ff4d6d] rounded-full text-3xl font-bold hover:bg-gray-50 transition-all cursor-pointer shadow-lg">NO 💔</button>
+        </div>
+    </section>
+
+    <section id="gallery-content" class="section-content min-h-screen flex-col items-center py-20 relative content-layer fade-element hidden-el">
+        <div class="text-center mb-20 px-5">
+            <h1 class="dancing text-white text-5xl md:text-6xl mb-4 drop-shadow-md">Happy Valentine, My Love 💕</h1>
+            <h2 class="playfair italic text-pink-200 text-lg md:text-xl max-w-2xl mx-auto">Click the photo to zoom in ✨</h2>
+        </div>
+        
+        <div class="flex flex-wrap justify-center gap-x-12 gap-y-32 px-5 max-w-7xl">
+            <script>
+                const captions = [
+                    "My calm, my comfort 💖", "My favorite view ✨", "Effortlessly beautiful 💕", 
+                    "Beautiful, just being you 🌸", "Everyday happiness 💗", "Love this smile 🥰",
+                    "Always you 🧸", "My everything 💌", "So precious ✨", "Soulmate 💖",
+                    "Mine 💕", "Beautiful soul 🌸", "Forever & always 💗", "I love you ❤️"
+                ];
+                for(let i=1; i<=14; i++) {
+                    document.write(`
+                        <div class="animate-popup relative flex flex-col items-center group cursor-pointer" style="animation-delay: ${i*0.25}s" onclick="openZoom('foto${i}.jpeg', '${captions[i-1]}')">
+                            <div class="float-animation">
+                                <div class="bg-white p-3 pb-8 shadow-2xl w-52 md:w-60 transform group-hover:scale-110 group-hover:rotate-2 transition-all duration-300 rounded-sm">
+                                    <img src="foto${i}.jpeg" class="w-full h-60 md:h-72 object-cover mb-4 border border-gray-100">
+                                    <p class="playfair italic text-gray-800 text-center text-sm font-semibold">${captions[i-1]}</p>
+                                </div>
+                            </div>
+                            <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-40 h-8 bg-black/40 blur-xl rounded-[50%] opacity-60 group-hover:scale-110 transition-transform"></div>
+                        </div>
+                    `);
+                }
+            </script>
+        </div>
+        
+        <button onclick="goToPage('letter')" class="dancing mt-24 px-12 py-4 bg-white text-[#ff4d6d] rounded-2xl text-3xl font-bold relative shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-110 transition-transform cursor-pointer">💌 Buka Surat</button>
+    </section>
+
+    <section id="letter-content" class="section-content min-h-screen justify-center items-center py-10 relative content-layer fade-element hidden-el">
+        <div class="hidden md:block absolute top-10 left-10 w-48 h-48  p-2  rotate-[-6deg] wiggle-animation"><img src="date.svg" class="w-full h-full object-cover rounded"></div>
+        <div class="hidden md:block absolute bottom-10 left-10 w-48 h-48  p-2  rotate-[5deg] wiggle-animation" style="animation-delay: -1s;"><img src="cat.svg" class="w-full h-full object-cover rounded"></div>
+        <div class="hidden md:block absolute top-10 right-10 w-48 h-48  p-2  rotate-[4deg] wiggle-animation" style="animation-delay: -2s;"><img src="choclate.svg" class="w-full h-full object-cover rounded"></div>
+        <div class="hidden md:block absolute bottom-10 right-10 w-48 h-48  p-2  rotate-[-3deg] wiggle-animation" style="animation-delay: -1.5s;"><img src="coklat.svg" class="w-full h-full object-cover rounded"></div>
+
+        <div class="paper-container relative bg-white w-[92%] max-w-xl min-h-[580px] p-10 pl-16 shadow-2xl border border-gray-200 paper-lines transform hover:scale-[1.01] transition-transform duration-500">
+            <div class="absolute left-[48px] top-0 bottom-0 w-[2px] bg-red-200"></div>
+            <h3 class="dancing text-[#ff4d6d] text-4xl pt-10 mb-0">Dear Nesiya Putri,</h3>
+            
+            <p id="typedText" class="dancing text-2xl text-gray-800 leading-[2.5rem] whitespace-pre-line"></p>
+            
+            <button onclick="goToPage('gallery')" class="dancing mt-12 px-8 py-2 bg-[#ff4d6d] text-white rounded-xl text-xl hover:bg-red-600 transition-colors cursor-pointer">Kembali</button>
+        </div>
+    </section>
+
+    <audio id="music" src="lagu.mp3" loop></audio>
+
+    <script>
+        // === HUJAN ABADI ===
+        function startEternalRain() {
+            const container = document.getElementById('global-rain');
+            const icons = ['🍫', '❤️', '🍬', '🍩', '🧸', '💌', '✨', '🌸']; 
+            setInterval(() => {
+                const e = document.createElement('div');
+                e.className = 'emoji-particle text-3xl md:text-5xl';
+                e.innerText = icons[Math.floor(Math.random() * icons.length)];
+                e.style.left = Math.random() * 100 + '%';
+                e.style.animationDuration = (Math.random() * 5 + 3) + 's'; 
+                container.appendChild(e);
+                setTimeout(() => e.remove(), 8000);
+            }, 300);
+        }
+        startEternalRain();
+
+        // === ZOOM FOTO ===
+        function openZoom(imageSrc, captionText) {
+            const modal = document.getElementById('zoom-modal');
+            const img = document.getElementById('zoom-img');
+            const caption = document.getElementById('zoom-caption');
+            img.src = imageSrc;
+            caption.innerText = captionText;
+            modal.classList.add('active');
+        }
+        function closeZoom() { document.getElementById('zoom-modal').classList.remove('active'); }
+
+        // === TRANSISI ===
+        let currentPage = 'landing';
+        function goToPage(targetPage) {
+            const oldContent = document.getElementById(currentPage + '-content');
+            const oldBg = document.getElementById('bg-' + currentPage);
+            const newContent = document.getElementById(targetPage + '-content');
+            const newBg = document.getElementById('bg-' + targetPage);
+
+            if(oldContent) {
+                oldContent.classList.remove('visible-el'); oldContent.classList.add('hidden-el');
+                setTimeout(() => { oldContent.classList.remove('active'); }, 1000); 
+            }
+            if(oldBg) { oldBg.classList.remove('visible-el'); oldBg.classList.add('hidden-el'); }
+
+            setTimeout(() => {
+                newContent.classList.add('active'); void newContent.offsetWidth; 
+                newContent.classList.remove('hidden-el'); newContent.classList.add('visible-el');
+                newBg.classList.remove('hidden-el'); newBg.classList.add('visible-el');
+                window.scrollTo(0, 0);
+                if (targetPage === 'letter') typeLetter();
+            }, 500);
+            currentPage = targetPage;
+        }
+
+        // === TOMBOL & MUSIK ===
+        let scale = 1;
+        const music = document.getElementById('music');
+        function growYes() { scale += 0.5; document.getElementById('yesBtn').style.transform = `scale(${scale})`; }
+        function yesClick() {
+            music.volume = 0; music.play();
+            let vol = 0; const fadeIn = setInterval(() => { if (vol < 1) { vol += 0.05; music.volume = vol; } else clearInterval(fadeIn); }, 100);
+            goToPage('gallery');
+        }
+
+        // === TEKS SURAT (Dengan Garis Baru) ===
+        // Saya pakai \n\n (double enter) biar jadi paragraf baru yang jelas
+        const text = `Happy Valentine's Day baby. I'm so glad I got to meet you, and thank you for giving me a second chance to get to know you.
+
+I want you to know that you keep me going even when things get hard, and that inspires me so much.
+
+Thank you for being understanding of me, and I hope this isn't too much for you cause I know you struggle with avoidant feelings sometimes.
+
+But most of all, you deserve the very best, today and every day. Happy Valentine's Day!! ❤️`;
+        
+        let i = 0;
+        function typeLetter() {
+            const target = document.getElementById('typedText'); i = 0; target.textContent = '';
+            function typing() { if (i < text.length) { target.textContent += text[i++]; setTimeout(typing, 45); } }
+            typing();
+        }
+    </script>
+</body>
+</html>
